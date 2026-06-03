@@ -1,8 +1,8 @@
 
-```markdown
+
 # 🚀 Sankhya MCP Server
 
-[cite_start]Bem-vindo ao repositório do **Sankhya MCP** (`lucasbCPE/sankhya-mcp` [cite: 9]). [cite_start]Este projeto é um servidor Model Context Protocol (MCP) desenvolvido integralmente em Python [cite: 19] [cite_start]para interagir de forma inteligente com os sistemas Sankhya, facilitando operações como a exportação de metadados de tabelas[cite: 14].
+Este projeto é um servidor Model Context Protocol (MCP) desenvolvido integralmente em Python para interagir de forma inteligente com os sistemas Sankhya, facilitando operações como a exportação de metadados de tabelas.
 
 Este guia é destinado à equipe de TI e descreve o processo de clonagem, configuração no Claude Desktop e o fluxo de versionamento (Git Flow) que utilizamos para garantir a integridade do código e evitar que o trabalho da equipe seja sobrescrito.
 
@@ -22,7 +22,6 @@ Este guia é destinado à equipe de TI e descreve o processo de clonagem, config
    git clone [https://github.com/lucasbCPE/sankhya-mcp.git](https://github.com/lucasbCPE/sankhya-mcp.git)
    cd sankhya-mcp
 
-```
 
 2. **Crie e ative um ambiente virtual (Recomendado):**
 * No Windows:
@@ -166,10 +165,3 @@ git checkout main
 git pull origin main
 git branch -d feature/melhoria-metadados-tabela # apaga a branch antiga
 
-```
-
-
-
-```
-
-```
