@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from mcp.server import Server, NotificationOptions
-from mcp.server.models import InitializationCapabilities
+from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
 from sqlalchemy import create_engine, inspect, text
@@ -15,17 +15,15 @@ env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 def get_engine():
-    """Cria uma engine de conexão com o banco de dados usando as variáveis de ambiente.
-    """
+    """Cria uma engine de conexão com o banco de dados usando as variáveis de ambiente."""
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
     db_host = os.getenv("DB_HOST")
     db_port = os.getenv("DB_PORT")
     db_database = os.getenv("DB_DATABASE")
 
-
     connection_string = (
-        f"mssql+pyodbc://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}"
+        f"mssql+pymssql://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}"
     )
     return create_engine(connection_string, echo=False)
 
@@ -121,7 +119,8 @@ async def get_table_info(table_name: str):
             "columns": [{"name": c["name"], "type": str(c["type"])} for c in columns],
             "foreign_keys": fks,
             "business_relations": knowledge.get("relations", []),
-            "key_fields": knowledge.get("key_fields", [])
+            "key_fields": knowledge.get("key_fields", []),
+            "domain_values": knowledge.get("domain_values", {})
         }
         return [TextContent(type="text", text=json.dumps(result, indent=2, default=str))]
     except Exception as e:
@@ -153,25 +152,35 @@ async def execute_query(sql: str):
     try:
         with engine.connect() as conn:
             result = conn.execute(text(sql))
-            rows = [dict(row._mapping) for row in result.fetchall()]
+            rows = [dict(row._mapping) for row in result.fetchmany(100)] 
             columns = list(rows[0].keys()) if rows else []
             return [TextContent(
                 type="text",
                 text=json.dumps({
                     "columns": columns,
                     "row_count": len(rows),
-                    "rows": rows[:100]  # limite de segurança
+                    "rows": rows
                 }, indent=2, default=str)
             )]
     except Exception as e:
         return [TextContent(type="text", text=f"Erro na execução da consulta: {str(e)}")]
     
 async def run_server():
+    # Configura as opções de inicialização de acordo com o padrão mais recente da SDK
+    options = InitializationOptions(
+        server_name="sankhya-mcp",
+        server_version="0.1.0",
+        capabilities=server.get_capabilities(
+            notification_options=NotificationOptions(),
+            experimental_capabilities={},
+        )
+    )
+    
     async with stdio_server() as (read_stream, write_stream):
         await server.run(
             read_stream,
             write_stream,
-            InitializationCapabilities(sampling={}, experimental={}, roots={}),
+            options
         )
 
 if __name__ == "__main__":
