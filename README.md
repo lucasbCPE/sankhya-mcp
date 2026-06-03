@@ -75,6 +75,7 @@ Para que o Claude Desktop reconheça o servidor `server.py`  e passe a ter acess
 1. **Localize e abra o arquivo de configuração do Claude Desktop:**
 * **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 * **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+* **Ou entre no Claude desktop vá até `configurações > Desenvolvedor > editar Config`, para encontrar o arquivo**
 
 
 2. **Adicione o servidor na seção `mcpServers`:**
