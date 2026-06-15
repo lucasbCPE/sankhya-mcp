@@ -2,3 +2,5 @@ mcp
 sqlalchemy
 pymssql
 python-dotenv
+uvicorn
+starlette

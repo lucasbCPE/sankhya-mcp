@@ -5,7 +5,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
-from mcp.server.stdio import stdio_server
+from mcp.server.sse import SseServerTransport
+from starlette.applications import Starlette
+from starlette.routing import Route
+import uvicorn
 from mcp.types import Tool, TextContent
 from sqlalchemy import create_engine, inspect, text
 
@@ -183,5 +186,33 @@ async def run_server():
             options
         )
 
+sse = SseServerTransport("/messages")
+
+async def handle_sse(request):
+    """Rota principal que o Claude Desktop vai se conectar (SSE)"""
+    async with sse.connect_sse(
+        request.scope, request.receive, request._send
+    ) as streams:
+        options = InitializationOptions(
+            server_name="sankhya-mcp",
+            server_version="0.1.0",
+            capabilities=server.get_capabilities(
+                notification_options=NotificationOptions(),
+                experimental_capabilities={},
+            )
+        )
+        await server.run(streams[0], streams[1], options)
+
+async def handle_messages(request):
+    """Rota para recebimento de mensagens do Claude"""
+    await sse.handle_post_message(request.scope, request.receive, request._send)
+
+# Cria a aplicação Web
+app = Starlette(debug=True, routes=[
+    Route("/sse", endpoint=handle_sse),
+    Route("/messages", endpoint=handle_messages, methods=["POST"]),
+])
+
 if __name__ == "__main__":
-    asyncio.run(run_server())
+    # O host "0.0.0.0" permite que o Docker exponha o container para o Oracle Linux
+    uvicorn.run(app, host="0.0.0.0", port=8000)
